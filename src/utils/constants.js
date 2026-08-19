@@ -3,7 +3,7 @@
  * Origin-only values (e.g. https://….onrender.com) get `/api/v1` appended.
  */
 function resolveApiUrl(raw) {
-  const fallback = 'http://localhost:5000/api/v1';
+  const fallback = 'https://saas-ecom-backend-g9zg.onrender.com/api/v1';
   let value = String(raw || '').trim().replace(/\/+$/, '');
   if (!value) return fallback;
   if (!/^https?:\/\//i.test(value)) {
