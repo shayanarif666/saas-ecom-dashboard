@@ -1,11 +1,10 @@
 /**
  * Resolve API base URL. Must be an absolute Backend URL (http/https).
- * A bare domain like "duabookpalace.com" is a store domain, not the API —
- * using it as VITE_API_URL makes requests hit Vite (404) instead of Express.
+ * Origin-only values (e.g. https://….onrender.com) get `/api/v1` appended.
  */
 function resolveApiUrl(raw) {
   const fallback = 'http://localhost:5000/api/v1';
-  const value = String(raw || '').trim().replace(/\/$/, '');
+  let value = String(raw || '').trim().replace(/\/+$/, '');
   if (!value) return fallback;
   if (!/^https?:\/\//i.test(value)) {
     console.warn(
@@ -13,6 +12,7 @@ function resolveApiUrl(raw) {
     );
     return fallback;
   }
+  if (!/\/api\/v1$/i.test(value)) value = `${value}/api/v1`;
   return value;
 }
 
@@ -20,6 +20,8 @@ export const API_URL = resolveApiUrl(import.meta.env.VITE_API_URL);
 
 /** When true, Dashboard runs offline with mock data. Default: live Backend. */
 export const DEMO_MODE = String(import.meta.env.VITE_DEMO_MODE || 'false').toLowerCase() === 'true';
+
+export const AUTH_STORAGE_KEY = 'bookstore_dash_auth';
 
 export const BRAND = {
   name: 'BookVerse',

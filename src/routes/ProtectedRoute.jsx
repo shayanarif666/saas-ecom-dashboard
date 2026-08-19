@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
 import { useMeQuery } from '../features/auth/useAuth';
 import { clearAuth } from '../store/authSlice';
 import { authApi } from '../services/api';
@@ -13,8 +13,10 @@ const isDashboardRole = (role) =>
 export default function ProtectedRoute({ roles }) {
   const location = useLocation();
   const dispatch = useDispatch();
-  const { user, status } = useSelector((s) => s.auth);
-  const { isLoading, isFetching } = useMeQuery(status === 'idle' || status === 'loading');
+  const { user, status, accessToken } = useSelector((s) => s.auth);
+  const { isLoading, isFetching } = useMeQuery(
+    Boolean(accessToken) && (status === 'idle' || status === 'loading')
+  );
 
   const isCustomer = user?.role === ROLES.CUSTOMER || user?.role === 'customer';
 

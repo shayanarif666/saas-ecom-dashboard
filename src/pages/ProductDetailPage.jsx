@@ -169,6 +169,7 @@ export default function ProductDetailPage() {
     if (!files.length) return;
     const fd = new FormData();
     files.forEach((file) => fd.append('images', file));
+    fd.append('folder', 'products');
     setUploading(true);
     try {
       const res = await productsApi.upload(fd);

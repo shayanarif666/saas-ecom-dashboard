@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { authApi } from '../../services/api';
-import { clearAuth, setAuthError, setAuthLoading, setUser } from '../../store/authSlice';
+import { clearAuth, setAuthError, setAuthLoading, setSession } from '../../store/authSlice';
 import { clearDemoSession } from '../../demo/demoData';
 import { DEMO_MODE } from '../../utils/constants';
 
@@ -18,6 +18,15 @@ const pickUser = (res) => {
   return null;
 };
 
+const pickSession = (res) => {
+  const payload = res?.data && typeof res.data === 'object' ? res.data : res;
+  return {
+    user: pickUser(res),
+    accessToken: payload?.accessToken || res?.accessToken || null,
+    refreshToken: payload?.refreshToken || res?.refreshToken || null,
+  };
+};
+
 export function useMeQuery(enabled = true) {
   const dispatch = useDispatch();
   return useQuery({
@@ -29,10 +38,9 @@ export function useMeQuery(enabled = true) {
       try {
         const res = await authApi.me();
         const user = pickUser(res);
-        dispatch(setUser(user));
+        dispatch(setSession({ user }));
         return user;
       } catch (err) {
-        // Unauthenticated is normal on login screen — don't leave UI stuck in error loops
         dispatch(setAuthError(err.response?.data?.message));
         return null;
       }
@@ -46,9 +54,9 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (res) => {
-      const user = pickUser(res);
-      dispatch(setUser(user));
-      qc.setQueryData(['auth', 'me'], user);
+      const session = pickSession(res);
+      dispatch(setSession(session));
+      qc.setQueryData(['auth', 'me'], session.user);
     },
   });
 }
@@ -59,9 +67,9 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: authApi.register,
     onSuccess: (res) => {
-      const user = pickUser(res);
-      dispatch(setUser(user));
-      qc.setQueryData(['auth', 'me'], user);
+      const session = pickSession(res);
+      dispatch(setSession(session));
+      qc.setQueryData(['auth', 'me'], session.user);
     },
   });
 }
@@ -78,3 +86,5 @@ export function useLogoutMutation() {
     },
   });
 }
+
+export { pickSession };

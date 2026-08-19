@@ -9,11 +9,10 @@ import { Check, Store, UserRound, ShieldCheck } from 'lucide-react';
 import AuthShell from '../components/auth/AuthShell';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
-import { useMeQuery } from '../features/auth/useAuth';
 import { authApi } from '../services/api';
 import { cn, getApiError } from '../utils/helpers';
 import { useDispatch } from 'react-redux';
-import { setUser } from '../store/authSlice';
+import { setSession } from '../store/authSlice';
 import { useQueryClient } from '@tanstack/react-query';
 import { ROLES } from '../utils/constants';
 
@@ -72,8 +71,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const qc = useQueryClient();
-  const { user, status } = useSelector((s) => s.auth);
-  useMeQuery(status === 'idle');
+  const { user } = useSelector((s) => s.auth);
 
   const [step, setStep] = useState(1);
   const [storeData, setStoreData] = useState(null);
@@ -137,7 +135,7 @@ export default function RegisterPage() {
   const onOwnerNext = async (values) => {
     setSendingOtp(true);
     try {
-      await authApi.registerStart({
+      const res = await authApi.registerStart({
         storeName: storeData.storeName,
         customDomain: storeData.customDomain,
         businessType: storeData.businessType || 'bookstore',
@@ -148,7 +146,10 @@ export default function RegisterPage() {
       });
       setOwnerData(values);
       setStep(3);
-      toast.success('OTP sent to your email');
+      const devOtp = res?.data?.devOtp;
+      toast.success(
+        devOtp ? `OTP sent. Dev code: ${devOtp}` : 'OTP sent to your email'
+      );
     } catch (err) {
       toast.error(getApiError(err, 'Failed to send OTP'));
     } finally {
@@ -165,7 +166,13 @@ export default function RegisterPage() {
       });
       const created = res?.data?.user ?? res?.user;
       if (created) {
-        dispatch(setUser(created));
+        dispatch(
+          setSession({
+            user: created,
+            accessToken: res?.data?.accessToken,
+            refreshToken: res?.data?.refreshToken,
+          })
+        );
         qc.setQueryData(['auth', 'me'], created);
       }
       toast.success(`Store ready. Welcome, ${created?.name || 'Admin'}!`);
@@ -181,8 +188,9 @@ export default function RegisterPage() {
     if (!ownerData?.email) return;
     setResending(true);
     try {
-      await authApi.registerResendOtp({ email: ownerData.email });
-      toast.success('OTP resent');
+      const res = await authApi.registerResendOtp({ email: ownerData.email });
+      const devOtp = res?.data?.devOtp;
+      toast.success(devOtp ? `OTP resent. Dev code: ${devOtp}` : 'OTP resent');
     } catch (err) {
       toast.error(getApiError(err, 'Failed to resend OTP'));
     } finally {
@@ -208,8 +216,7 @@ export default function RegisterPage() {
     <AuthShell
       title={stepTitle}
       subtitle={stepSubtitle}
-      panelTitle="Launch your brand"
-      panelCopy="Register your domain once — every product, category, order, and receipt stays scoped to your store."
+      wide
       footer={
         <>
           Already have an account?{' '}

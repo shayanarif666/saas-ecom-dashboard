@@ -5,16 +5,15 @@ import toast from 'react-hot-toast';
 import AuthShell from '../components/auth/AuthShell';
 import AuthForm from '../components/auth/AuthForm';
 import Button from '../components/common/Button';
-import { useLoginMutation, useMeQuery } from '../features/auth/useAuth';
-import { API_URL, DEMO_MODE, ROLES } from '../utils/constants';
+import { useLoginMutation } from '../features/auth/useAuth';
+import { DEMO_MODE, ROLES } from '../utils/constants';
 import { DEMO_CREDENTIALS } from '../demo/demoData';
 import { getApiError } from '../utils/helpers';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, status } = useSelector((s) => s.auth);
-  useMeQuery(status === 'idle');
+  const { user } = useSelector((s) => s.auth);
   const loginMutation = useLoginMutation();
   const [demoLoading, setDemoLoading] = useState(false);
 
@@ -66,7 +65,7 @@ export default function LoginPage() {
       subtitle={
         DEMO_MODE
           ? 'Demo mode is on — no Backend needed. Use the button below or the demo credentials.'
-          : `Connected to ${API_URL}. Sign in with your administrator account.`
+          : 'Sign in with your administrator account.'
       }
       footer={
         <>

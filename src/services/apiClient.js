@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL, DEMO_MODE } from '../utils/constants';
+import { API_URL, AUTH_STORAGE_KEY, DEMO_MODE } from '../utils/constants';
 import { handleDemoRequest } from '../demo/demoApi';
 
 const apiClient = axios.create({
@@ -43,6 +43,39 @@ if (DEMO_MODE) {
   };
 }
 
+const readAuthSession = () => {
+  try {
+    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const persistAuthSession = (next) => {
+  try {
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+};
+
+const clearAuthSession = () => {
+  try {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+};
+
+apiClient.interceptors.request.use((config) => {
+  const session = readAuthSession();
+  if (session?.accessToken) {
+    config.headers.Authorization = `Bearer ${session.accessToken}`;
+  }
+  return config;
+});
+
 let refreshing = false;
 let queue = [];
 
@@ -84,11 +117,26 @@ apiClient.interceptors.response.use(
     original._retry = true;
     refreshing = true;
     try {
-      await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+      const session = readAuthSession();
+      const res = await axios.post(
+        `${API_URL}/auth/refresh`,
+        { refreshToken: session?.refreshToken },
+        { withCredentials: true }
+      );
+      const data = res.data?.data || {};
+      if (!data.accessToken) {
+        throw new Error('Refresh did not return an access token');
+      }
+      persistAuthSession({
+        user: data.user || session?.user || null,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken || session?.refreshToken || null,
+      });
       flushQueue(null);
       return apiClient(original);
     } catch (err) {
       flushQueue(err);
+      clearAuthSession();
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }

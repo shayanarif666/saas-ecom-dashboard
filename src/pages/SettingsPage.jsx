@@ -355,9 +355,10 @@ export default function SettingsPage() {
     onError: (err) => toast.error(getApiError(err, 'Failed to save settings')),
   });
 
-  const uploadFiles = async (files) => {
+  const uploadFiles = async (files, folder = 'branding') => {
     const fd = new FormData();
     files.forEach((file) => fd.append('images', file));
+    fd.append('folder', folder);
     const res = await productsApi.upload(fd);
     const data = unwrap(res);
     return (data.images || [])
