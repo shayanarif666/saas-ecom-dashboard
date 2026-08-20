@@ -126,9 +126,9 @@ export default function BillingDetailPage() {
                 <p className="mt-2 text-sm text-text-secondary">
                   {receipt.issuedAt || receipt.createdAt || receipt.date
                     ? format(
-                        new Date(receipt.issuedAt || receipt.createdAt || receipt.date),
-                        'dd MMM yyyy, HH:mm'
-                      )
+                      new Date(receipt.issuedAt || receipt.createdAt || receipt.date),
+                      'dd MMM yyyy, HH:mm'
+                    )
                     : '—'}
                 </p>
               </div>
@@ -172,9 +172,7 @@ export default function BillingDetailPage() {
                 {receipt.items.map((item, idx) => (
                   <li key={`${item.productId}-${idx}`} className="flex items-center gap-3 py-3">
                     <div className="h-12 w-12 overflow-hidden rounded-xl bg-lavender-soft">
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
-                      ) : null}
+                      <img src={item?.imageUrl} alt="" className="h-full w-full object-contain" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-primary">{item.title}</p>
