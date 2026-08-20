@@ -25,8 +25,8 @@ const TABS = [
 
 const LOGO_W = 570;
 const LOGO_H = 520;
-const BANNER_W = 1900;
-const BANNER_H = 560;
+const BANNER_W = 1670;
+const BANNER_H = 970;
 const GLOBAL_BANNER_W = 1535;
 const GLOBAL_BANNER_H = 350;
 const BANNER_MAX_BYTES = 2 * 1024 * 1024;
@@ -438,8 +438,6 @@ export default function SettingsPage() {
             `Banner "${file.name}" exceeds 2 MB (${(file.size / (1024 * 1024)).toFixed(2)} MB)`
           );
         }
-        // eslint-disable-next-line no-await-in-loop
-        await assertExactDimensions(file, BANNER_W, BANNER_H, 'Banner');
       }
       const urls = await uploadFiles(files);
       setForm((p) => ({
@@ -951,7 +949,7 @@ export default function SettingsPage() {
               <div className="grid gap-4">
                 <ImageUploadBox
                   label="Banner images"
-                  helperText={`Required: exactly ${BANNER_W}×${BANNER_H}px · max 2 MB · then assign a category`}
+                  helperText={`Recommended: ${BANNER_W}×${BANNER_H}px · max 2 MB · then assign a category`}
                   multiple
                   uploading={uploadingBanners}
                   onUpload={onBannerUpload}
@@ -968,7 +966,7 @@ export default function SettingsPage() {
                           <img
                             src={banner.imageUrl}
                             alt=""
-                            className="aspect-[1900/560] w-full object-cover"
+                            className="aspect-[1670/970] w-full object-cover"
                           />
                         </div>
                         <div className="min-w-0 space-y-3 self-center">
